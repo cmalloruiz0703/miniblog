@@ -75,3 +75,37 @@ revisión; después entra como `docente.demo` (o como administrador), revísala 
 
 > **Importante:** borra estos usuarios (en `/admin/users/`, como administrador) o cambia su contraseña
 > antes de publicar el blog en internet. Contraseñas conocidas en un servidor público son un riesgo.
+
+## Cómo he desplegado el proyecto
+
+Entorno: máquina virtual con Debian 13 («trixie»), a la que me conecto por SSH desde Windows.
+
+### Comandos que he usado
+
+```bash
+# Instalar dependencias del sistema
+sudo apt update
+sudo apt install git openssh-client php-cli php-sqlite3 php-xml php-mbstring php-intl php-curl unzip composer
+
+# Configurar Git
+git config --global user.name "Carlos Mallo Ruiz"
+git config --global user.email "mi-correo@ejemplo.org"
+git config --global init.defaultBranch master
+
+# Clave SSH para GitHub
+ssh-keygen -t ed25519 -C "mi-correo@ejemplo.org"
+
+# Clonar mi fork y preparar el proyecto
+git clone git@github.com:cmalloruiz0703/miniblog.git
+cd miniblog
+composer install
+php bin/console create-schema
+php bin/console app:create-user admin "Administrador"
+php -S localhost:8000 -t public
+```
+
+### Problemas que me han surgido
+
+- **No veía la web desde Windows:** el servidor de PHP corre en la máquina virtual, así que `localhost:8000` del navegador de Windows no llegaba. Lo resolví con un túnel SSH: `ssh -L 8000:localhost:8000 usuario@IP-de-la-VM`.
+- **`ERR_CONNECTION_CLOSED` en el navegador:** Chrome abría la dirección con `https://` y el servidor de pruebas de PHP solo habla `http://`. Lo resolví escribiendo la URL completa con `http://`.
+- **Pull request al destino equivocado:** GitHub propone por defecto el repositorio del profesor. Lo cerré y lo volví a crear cambiando `base repository` a mi propio fork.
